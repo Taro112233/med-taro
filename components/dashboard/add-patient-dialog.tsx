@@ -53,8 +53,9 @@ export function AddPatientDialog({ onPatientAdded }: AddPatientDialogProps) {
       setFormData({ hospitalNumber: '', firstName: '', lastName: '' });
       setOpen(false);
       onPatientAdded();
-    } catch (err: any) {
-      setError(err.message);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

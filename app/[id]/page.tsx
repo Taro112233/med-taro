@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect, use, useCallback } from 'react';
 import { PatientHeader } from '@/components/patient-detail/patient-header';
 import { AdmissionSection } from '@/components/patient-detail/admission-section';
 import { ProgressNotesSection } from '@/components/patient-detail/progress-notes-section';
@@ -18,7 +18,7 @@ export default function PatientDetailPage({ params }: PageProps) {
   const [loading, setLoading] = useState(true);
   const [selectedAdmissionId, setSelectedAdmissionId] = useState<string>('');
 
-  const fetchPatient = async () => {
+  const fetchPatient = useCallback(async () => {
     setLoading(true);
     try {
       const response = await fetch(`/api/patients/${resolvedParams.id}`);
@@ -32,11 +32,11 @@ export default function PatientDetailPage({ params }: PageProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [resolvedParams.id]);
 
   useEffect(() => {
     fetchPatient();
-  }, [resolvedParams.id]);
+  }, [fetchPatient]);
 
   if (loading) {
     return (

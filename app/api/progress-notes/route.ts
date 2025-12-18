@@ -59,7 +59,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         objective: body.objective,
         assessment: body.assessment,
         plan: body.plan,
-        vitalSigns: body.vitalSigns as any,
+        vitalSigns: body.vitalSigns ? JSON.parse(JSON.stringify(body.vitalSigns)) : undefined,
         note: body.note,
         createdBy: body.createdBy,
       },
