@@ -1,507 +1,617 @@
-# Asthma & COPD Clinical Documentation System
+# In-Patient Management System - MVP Instructions
 
-ระบบบันทึกและติดตามผลการรักษาผู้ป่วยโรคหืดและปอดอุดกั้นเรื้อรัง
+## Project Overview
+Hospital in-patient documentation system for tracking patient admissions, daily progress notes, and clinical data. Minimal interface with only 2 pages: dashboard overview and patient detail view using flat route structure.
 
-> ⚡ **Ready to Use**: โปรเจคนี้มี Database และ Credentials พร้อมใช้งาน  
-> Clone ลงมา → ติดตั้ง dependencies → รันได้เลย!  
-> **Login**: Username อะไรก็ได้ | Password: `123456`
+## Technical Stack
+- **Frontend:** Next.js 15 + TypeScript + TailwindCSS + Shadcn/UI
+- **Backend:** Next.js API Routes with Prisma ORM
+- **Database:** PostgreSQL
+- **Hosting:** Vercel
 
----
+## Database Schema
 
-## 📋 Table of Contents
+### Patient Model
+- `id` (String, cuid, primary key)
+- `hospitalNumber` (String, unique) - HN
+- `firstName` (String)
+- `lastName` (String)
+- `status` (Enum: ADMIT, DISCHARGED)
+- `createdAt` (DateTime, auto)
+- `updatedAt` (DateTime, auto)
+- Relations: `admissions[]`
 
-- [ภาพรวมระบบ](#ภาพรวมระบบ)
-- [Tech Stack](#tech-stack)
-- [ความต้องการของระบบ](#ความต้องการของระบบ)
-- [การติดตั้ง](#การติดตั้ง)
-- [การตั้งค่า Database](#การตั้งค่า-database)
-- [การรันโปรเจค](#การรันโปรเจค)
-- [โครงสร้างโปรเจค](#โครงสร้างโปรเจค)
-- [การใช้งาน](#การใช้งาน)
-- [คำสั่งที่สำคัญ](#คำสั่งที่สำคัญ)
-- [Troubleshooting](#troubleshooting)
+### Admission Model
+- `id` (String, cuid, primary key)
+- `admissionNumber` (String, unique) - AN
+- `patientId` (String, foreign key)
+- `bedNumber` (String)
+- `admissionDate` (DateTime)
+- `dischargeDate` (DateTime, nullable)
+- Clinical fields (all Text, nullable):
+  - `chiefComplaint` - CC
+  - `historyPresent` - HPI
+  - `pastMedicalHx` - PHM
+  - `familyHistory` - FH
+  - `socialHistory` - SH
+  - `allergies` - ALL
+  - `medications` - MED
+  - `note`
+- `createdAt` (DateTime, auto)
+- `updatedAt` (DateTime, auto)
+- Relations: `patient`, `progressNotes[]`
 
----
+### ProgressNote Model
+- `id` (String, cuid, primary key)
+- `admissionId` (String, foreign key)
+- SOAP fields (all Text, nullable):
+  - `subjective` - S
+  - `objective` - O
+  - `assessment` - A
+  - `plan` - P
+- `vitalSigns` (JSON, nullable) - structure: `{bp, hr, rr, temp, o2sat}`
+- `note` (Text, nullable)
+- `createdAt` (DateTime, auto with timestamp)
+- `createdBy` (String) - username/identifier
+- Relations: `admission`
 
-## 🎯 ภาพรวมระบบ
+### Enums
+- `PatientStatus`: ADMIT, DISCHARGED
 
-ระบบนี้พัฒนาขึ้นเพื่อใช้ในคลินิกโรคทางเดินหายใจ มีฟีเจอร์หลัก:
-
-- ✅ บันทึกข้อมูลการประเมินผู้ป่วย (Assessment Form)
-- ✅ รายงานสรุปผลการรักษา (Reports)
-- ✅ จัดการข้อมูลผู้ป่วยและประวัติการรักษา (Data Management)
-- ✅ ระบบ Authentication แบบ Cookie-based
-- ✅ Export ข้อมูลเป็น Excel
-
----
-
-## 🛠 Tech Stack
-
-### Frontend
-- **Next.js 15** - React Framework (App Router)
-- **React 19.1.0** - UI Library
-- **TypeScript 5** - Type Safety
-- **TailwindCSS 4** - Utility-first CSS Framework
-- **Shadcn/UI** - Component Library (based on Radix UI)
-- **Sarabun Font** - Thai language support
-
-### Backend
-- **Next.js API Routes** - Serverless API
-- **Prisma ORM 6.15.0** - Database ORM with TypeScript
-- **PostgreSQL** - Database (Neon Serverless)
-
-### Development Tools
-- **pnpm** - Package Manager
-- **ESLint** - Code Linting
-- **TypeScript** - Static Type Checking
-
-### Key Libraries
-- `react-hook-form` + `zod` - Form validation
-- `recharts` - Data visualization
-- `sonner` - Toast notifications
-- `xlsx` - Excel export
-- `date-fns` - Date manipulation
-
----
-
-## 💻 ความต้องการของระบบ
-
-ก่อนเริ่มติดตั้ง ต้องมีโปรแกรมเหล่านี้ติดตั้งในเครื่อง:
-
-### ✅ Required Software
-
-1. **Node.js** (version 18.17 หรือสูงกว่า)
-   - ดาวน์โหลดได้ที่: https://nodejs.org/
-   - แนะนำให้ใช้ LTS version
-   - ตรวจสอบการติดตั้ง: `node --version`
-
-2. **pnpm** (Package Manager)
-   - ติดตั้งผ่าน npm: `npm install -g pnpm`
-   - ตรวจสอบการติดตั้ง: `pnpm --version`
-
-3. **Git**
-   - ดาวน์โหลดได้ที่: https://git-scm.com/
-   - ตรวจสอบการติดตั้ง: `git --version`
-
-### 📝 Optional (แนะนำ)
-
-- **VS Code** - Code Editor
-  - ดาวน์โหลดได้ที่: https://code.visualstudio.com/
-  - Extensions แนะนำ:
-    - ESLint
-    - Prettier
-    - Tailwind CSS IntelliSense
-    - Prisma
-
----
-
-## 📦 การติดตั้ง
-
-### Step 1: Clone Repository
-
-```bash
-# Clone โปรเจคจาก GitHub
-git clone https://github.com/Taro112233/Asthma-COPD.git
-
-# หรือ Use This Template (ถ้าเป็น template repository)
-# คลิกปุ่ม "Use this template" บน GitHub
-
-# เข้าไปในโฟลเดอร์โปรเจค
-cd Asthma-COPD
+## Page Structure
+```
+app/
+├── page.tsx                    # Redirect to /dashboard
+├── dashboard/
+│   └── page.tsx                # Overview of all patients
+├── [id]/
+│   └── page.tsx                # Patient detail with admission & progress notes
+└── api/
+    ├── patients/
+    │   ├── route.ts            # GET (list with filters), POST (create)
+    │   ├── [id]/
+    │   │   └── route.ts        # GET (detail), PATCH (update), DELETE
+    │   └── search/
+    │       └── route.ts        # GET (search by HN)
+    ├── admissions/
+    │   ├── route.ts            # GET (list), POST (create)
+    │   └── [id]/
+    │       └── route.ts        # GET, PATCH, DELETE
+    └── progress-notes/
+        ├── route.ts            # GET (list), POST (create)
+        └── [id]/
+            └── route.ts        # GET, PATCH, DELETE
 ```
 
-### Step 2: ติดตั้ง Dependencies
+## Page Specifications
 
-```bash
-# ติดตั้งแพ็คเกจทั้งหมด (ใช้เวลาประมาณ 2-3 นาที)
-pnpm install
+### 1. Root Page (`/`)
+- Simple redirect to `/dashboard`
+- No content needed
+
+### 2. Dashboard Page (`/dashboard`)
+
+**Purpose:** Central hub showing all in-patients at a glance
+
+**Components:**
+- Header with title "ผู้ป่วยใน - Dashboard" and "เพิ่มผู้ป่วยใหม่" button
+- Filter section:
+  - Search input (by HN or Name)
+  - Status filter buttons: ทั้งหมด, Admit, D/C
+- Patient table with columns:
+  - HN
+  - ชื่อ-สกุล (Full name)
+  - AN (Current admission number)
+  - Bed (Current bed number)
+  - CC (Chief complaint - truncated)
+  - Admit Date
+  - Status badge
+- Each row clickable → navigate to `/[id]`
+
+**Data Loading:**
+- Fetch from `/api/patients?search={query}&status={filter}`
+- Include current admission data (most recent) for each patient
+- Default filter: ADMIT status
+- Real-time search with debounce
+
+**Actions:**
+- Click row → view patient detail
+- Add new patient → open modal/dialog with form:
+  - HN (required, unique validation)
+  - First Name (required)
+  - Last Name (required)
+  - Auto-set status to ADMIT
+  - POST to `/api/patients`
+
+### 3. Patient Detail Page (`/[id]`)
+
+**Purpose:** Complete patient record with admission history and daily progress
+
+**Layout Structure:**
+Three main sections stacked vertically:
+
+1. **Patient Header Card**
+   - Patient name (large, prominent)
+   - HN display
+   - Current status badge (ADMIT/DISCHARGED)
+   - "กลับ" button (back to dashboard)
+   - "Discharge" button (if status = ADMIT)
+   - Basic info editable inline
+
+2. **Admission Information Card**
+   - Dropdown selector if multiple admissions exist (show AN)
+   - Display selected admission details:
+     - AN, Bed Number, Admit Date, Discharge Date (if exists)
+   - Clinical fields (all as textarea, editable):
+     - CC - Chief Complaint
+     - HPI - History of Present Illness
+     - PHM - Past Medical History
+     - FH - Family History
+     - SH - Social History
+     - ALL - Allergies
+     - MED - Medications
+     - Note
+   - Edit/Save toggle button
+   - "เพิ่ม Admission ใหม่" button
+
+3. **Progress Notes Card**
+   - Header with "Progress Notes" title
+   - "Add Note" button
+   - Timeline of notes (newest first)
+   - Each note card displays:
+     - Timestamp (วัน/เดือน/ปี เวลา)
+     - Created by (username)
+     - Vital signs section (if exists): BP, HR, RR, Temp, O2 Sat
+     - SOAP sections:
+       - S - Subjective
+       - O - Objective
+       - A - Assessment
+       - P - Plan
+     - Additional note
+     - Delete button (icon)
+
+**Data Loading:**
+- Fetch from `/api/patients/[id]`
+- Include all admissions with nested progress notes
+- Auto-select most recent admission
+- Sort progress notes by `createdAt` descending
+
+**Key Actions:**
+
+*Discharge Patient:*
+- Confirm dialog
+- Update patient status to DISCHARGED
+- Set current admission's `dischargeDate` to now
+- PATCH `/api/patients/[id]` and `/api/admissions/[admissionId]`
+
+*Add Admission:*
+- Open modal/dialog with form:
+  - AN (required, unique)
+  - Bed Number (required)
+  - Admission Date (default: today)
+  - All clinical fields (optional)
+- POST to `/api/admissions`
+- Refresh patient data
+
+*Add Progress Note:*
+- Open modal/dialog with form:
+  - Vital Signs (optional): BP, HR, RR, Temp, O2 Sat
+  - S - Subjective (textarea)
+  - O - Objective (textarea)
+  - A - Assessment (textarea)
+  - P - Plan (textarea)
+  - Additional Note (textarea)
+  - Created By (input, required)
+- POST to `/api/progress-notes`
+- Auto-add timestamp
+- Refresh admission data
+
+*Edit Admission:*
+- Toggle edit mode for all clinical fields
+- Save button → PATCH `/api/admissions/[id]`
+- Cancel button → revert changes
+
+*Delete Progress Note:*
+- Confirm dialog
+- DELETE `/api/progress-notes/[id]`
+- Refresh admission data
+
+## API Endpoints Specification
+
+### Patients API
+
+**GET /api/patients**
+- Query params: `search` (optional), `status` (optional: ALL, ADMIT, DISCHARGED)
+- Returns: Array of patients with current admission embedded
+- Include only most recent admission per patient
+- Order by `updatedAt` DESC
+
+**POST /api/patients**
+- Body: `{hospitalNumber, firstName, lastName}`
+- Validation: HN must be unique
+- Auto-set status to ADMIT
+- Returns: Created patient object
+
+**GET /api/patients/[id]**
+- Returns: Patient with all admissions and nested progress notes
+- Admissions ordered by `admissionDate` DESC
+- Progress notes ordered by `createdAt` DESC
+
+**PATCH /api/patients/[id]**
+- Body: Any patient field to update
+- Common use: Update status to DISCHARGED
+- Returns: Updated patient object
+
+**DELETE /api/patients/[id]**
+- Cascade delete all admissions and progress notes
+- Returns: Success response
+
+**GET /api/patients/search**
+- Query param: `hn` (hospital number)
+- Returns: Patient if found, null if not
+- Used for HN autocomplete/validation
+
+### Admissions API
+
+**GET /api/admissions**
+- Query params: `patientId` (optional)
+- Returns: Array of admissions with nested progress notes
+- Order by `admissionDate` DESC
+
+**POST /api/admissions**
+- Body: `{admissionNumber, patientId, bedNumber, admissionDate, ...clinicalFields}`
+- Validation: AN must be unique
+- Returns: Created admission object
+
+**GET /api/admissions/[id]**
+- Returns: Admission with nested progress notes
+- Progress notes ordered by `createdAt` DESC
+
+**PATCH /api/admissions/[id]**
+- Body: Any admission field to update
+- Common use: Update clinical fields or set `dischargeDate`
+- Auto-update `updatedAt` timestamp
+- Returns: Updated admission object
+
+**DELETE /api/admissions/[id]**
+- Cascade delete all progress notes
+- Returns: Success response
+
+### Progress Notes API
+
+**GET /api/progress-notes**
+- Query params: `admissionId` (optional)
+- Returns: Array of progress notes
+- Order by `createdAt` DESC
+
+**POST /api/progress-notes**
+- Body: `{admissionId, subjective, objective, assessment, plan, vitalSigns, note, createdBy}`
+- Auto-set `createdAt` to current timestamp
+- Vital signs as JSON: `{bp: "120/80", hr: 72, rr: 16, temp: 37.0, o2sat: 98}`
+- Returns: Created progress note object
+
+**GET /api/progress-notes/[id]**
+- Returns: Single progress note object
+
+**PATCH /api/progress-notes/[id]**
+- Body: Any progress note field to update
+- Note: `createdAt` and `createdBy` should NOT be updatable
+- Returns: Updated progress note object
+
+**DELETE /api/progress-notes/[id]**
+- Hard delete
+- Returns: Success response
+
+## UI/UX Guidelines
+
+### Design Principles
+- Clean, clinical interface - no unnecessary decorations
+- High information density without clutter
+- Fast data entry - minimal clicks
+- Clear visual hierarchy
+- Responsive but optimized for desktop (clinical workstation use)
+
+### Component Usage (Shadcn/UI)
+- `Card` - All major sections
+- `Table` - Patient list on dashboard
+- `Badge` - Status indicators (ADMIT/DISCHARGED)
+- `Button` - Actions (variants: default, outline, ghost, destructive)
+- `Input` - Short text fields
+- `Textarea` - Clinical notes and long-form text
+- `Dialog` - Modals for add/edit forms
+- `Separator` - Visual breaks between sections
+- `Select` - Admission selector dropdown
+
+### Color Coding
+- ADMIT status: Blue badge
+- DISCHARGED status: Gray badge
+- Delete actions: Red (destructive variant)
+- Progress note cards: Blue left border
+- Edit mode: Yellow/amber highlight
+
+### Typography
+- Patient name: 2xl, bold
+- Section titles: xl, bold
+- Field labels: sm, medium
+- Clinical text: sm, regular
+- Timestamps: sm, text-gray-500
+
+### Spacing
+- Page padding: py-8 px-4
+- Card spacing: mb-6
+- Form field spacing: space-y-4
+- Grid gaps: gap-4
+
+## Data Flow Examples
+
+### Creating New Patient
+1. User clicks "เพิ่มผู้ป่วยใหม่" on dashboard
+2. Dialog opens with form
+3. User enters HN, First Name, Last Name
+4. On submit: POST `/api/patients`
+5. Backend creates patient with status ADMIT
+6. Dialog closes, dashboard refreshes
+7. New patient appears in list
+
+### Adding Progress Note
+1. User on patient detail page
+2. Clicks "Add Note" button
+3. Dialog opens with SOAP form
+4. User fills in sections + vital signs
+5. User enters their name in "Created By"
+6. On submit: POST `/api/progress-notes` with `admissionId`
+7. Backend creates note with current timestamp
+8. Dialog closes, progress notes section refreshes
+9. New note appears at top of timeline
+
+### Discharging Patient
+1. User on patient detail page, patient status = ADMIT
+2. Clicks "Discharge" button
+3. Confirm dialog appears
+4. On confirm:
+   - PATCH `/api/patients/[id]` with `{status: "DISCHARGED"}`
+   - PATCH `/api/admissions/[currentAdmissionId]` with `{dischargeDate: now()}`
+5. Page refreshes
+6. Status badge changes to "DISCHARGED"
+7. Discharge button hidden
+8. Discharge date appears in admission section
+
+## Environment Variables
 ```
-
-### Step 3: สร้างไฟล์ Environment Variables
-
-สร้างไฟล์ `.env` ในโฟลเดอร์หลัก (root) โดยคัดลอกจาก `.env.example`
-
-```bash
-# สำหรับ macOS/Linux
-cp .env.example .env
-
-# สำหรับ Windows (Command Prompt)
-copy .env.example .env
-
-# สำหรับ Windows (PowerShell)
-Copy-Item .env.example .env
-```
-
-**หรือสร้างไฟล์ `.env` ใหม่ด้วยตัวเอง:**
-
-```env
-# Database Connection (Neon PostgreSQL)
 DATABASE_URL="postgresql://neondb_owner:npg_9IPaXnKsY3UW@ep-dark-smoke-a1u448zz-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
-
-# Authentication
-SYSTEM_PASSWORD="123456"
-
-# App URL
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
-
-# Node Environment
-NODE_ENV="development"
 ```
 
-> ⚠️ **สำคัญ**: ไฟล์ `.env` มี DATABASE_URL และ PASSWORD จริง ที่พร้อมใช้งานได้เลย  
-> อย่า commit ไฟล์นี้ขึ้น GitHub (มีใน .gitignore อยู่แล้ว)
+## MVP Scope Definition
 
----
+### ✅ Included
+- Dashboard with patient list and filters
+- Patient detail page with full clinical data
+- Multiple admissions per patient
+- SOAP-formatted progress notes with vital signs
+- Add/Edit/Delete operations for all entities
+- Discharge workflow
+- Search by HN or name
+- Automatic timestamps on all entries
+- Responsive layout (desktop-optimized)
 
-## 🗄 การตั้งค่า Database
+### ❌ Excluded (Future Phases)
+- User authentication system
+- Role-based access control (doctor, nurse, pharmacist)
+- Medication ordering/management
+- Lab results integration
+- Vital signs charting/graphs
+- Export to PDF/Excel
+- Print-friendly views
+- Advanced analytics/reports
+- Medication administration records (MAR)
+- Image uploads (X-rays, documents)
+- Multi-language support (Thai only)
+- Audit logs
+- Data archiving
 
-โปรเจคนี้ใช้ **PostgreSQL** ผ่าน **Neon** (Serverless Postgres)
+## Development Priorities
 
-### Option 1: ใช้ Neon (แนะนำ - Database พร้อมใช้งาน)
+### Phase 1 (Current MVP)
+1. Database schema setup with Prisma
+2. API routes for all CRUD operations
+3. Dashboard page with search/filter
+4. Patient detail page with admission data
+5. Progress notes timeline with add/delete
+6. Basic form validation
+7. Deploy to Vercel
 
-**Database ถูกตั้งค่าไว้แล้ว!** 
+### Phase 2 (Next Iteration)
+1. Edit functionality for progress notes
+2. Vital signs trend visualization
+3. Admission history timeline view
+4. Enhanced search (by AN, bed number)
+5. Bulk operations
+6. Data export features
 
-ไม่ต้องสร้าง Database ใหม่ สามารถใช้ `DATABASE_URL` ที่อยู่ในไฟล์ `.env` ได้เลย
+### Phase 3 (Advanced Features)
+1. User authentication
+2. Role-based permissions
+3. Medication reconciliation
+4. Lab results display
+5. Clinical decision support
+6. Analytics dashboard
 
-หาก**ต้องการสร้าง Database ของตัวเอง**:
-1. สมัครบัญชีที่ https://neon.tech (ฟรี)
-2. สร้าง Project ใหม่
-3. คัดลอก Connection String
-4. แทนที่ค่า `DATABASE_URL` ในไฟล์ `.env`
+## Technical Considerations
 
-### Option 2: ใช้ Local PostgreSQL
+### Performance
+- Implement pagination if patient list > 100
+- Use React Query or SWR for data fetching and caching
+- Debounce search input (300ms)
+- Lazy load progress notes if > 50 per admission
 
-1. ติดตั้ง PostgreSQL: https://www.postgresql.org/download/
-2. สร้าง Database ใหม่
-3. ตั้งค่า Connection String ในไฟล์ `.env`
+### Data Integrity
+- Unique constraints on HN and AN
+- Cascade deletes properly configured
+- Validate date ranges (admission date ≤ discharge date)
+- Prevent editing discharged admissions
 
-```env
-DATABASE_URL="postgresql://postgres:password@localhost:5432/asthma_copd_db"
+### Error Handling
+- Display user-friendly error messages in Thai
+- Network error handling with retry logic
+- Form validation before API calls
+- Loading states for all async operations
+
+### Accessibility
+- Proper semantic HTML
+- Keyboard navigation support
+- Focus management in dialogs
+- ARIA labels where needed
+- Sufficient color contrast
+
+## Code Quality & Linting
+
+### ESLint Configuration
+- Follow Next.js 15 + TypeScript strict mode
+- Enable all recommended rules from `@typescript-eslint`
+- Enforce consistent import ordering
+- No unused variables or imports
+- Proper TypeScript type annotations (no `any` types)
+
+### Mandatory Linting Rules
+```json
+{
+  "extends": [
+    "next/core-web-vitals",
+    "next/typescript"
+  ],
+  "rules": {
+    "@typescript-eslint/no-unused-vars": "error",
+    "@typescript-eslint/no-explicit-any": "error",
+    "@typescript-eslint/explicit-function-return-type": "warn",
+    "import/order": ["error", {
+      "groups": ["builtin", "external", "internal", "parent", "sibling", "index"],
+      "newlines-between": "always"
+    }],
+    "no-console": ["warn", { "allow": ["error", "warn"] }]
+  }
+}
 ```
 
-### สร้าง Database Schema
+### Code Generation Requirements
+When AI generates code, it MUST:
 
-หลังจากตั้งค่า `DATABASE_URL` แล้ว รันคำสั่ง:
+1. **Type Safety:**
+   - Define proper TypeScript interfaces/types for all data structures
+   - Never use `any` type - use proper types or `unknown` with type guards
+   - Include return types for all functions
+   - Use generic types where appropriate
 
+2. **Import Organization:**
+   - React/Next.js imports first
+   - Third-party library imports second
+   - Local component imports third
+   - Type imports last
+   - Alphabetically sorted within each group
+
+3. **Error Handling:**
+   - Wrap all async operations in try-catch
+   - Type error objects properly
+   - Provide meaningful error messages
+   - No silent failures
+
+4. **Component Structure:**
+   - Use functional components with proper typing
+   - Destructure props with TypeScript interface
+   - Extract complex logic into custom hooks
+   - Memoize expensive operations with `useMemo`/`useCallback`
+
+5. **API Routes:**
+   - Proper HTTP status codes (200, 201, 400, 404, 409, 500)
+   - Type request body and response
+   - Validate input before processing
+   - Return consistent error format: `{error: string, details?: any}`
+
+### Pre-commit Checklist
+Before delivering any code file, AI must verify:
+- [ ] No ESLint errors or warnings
+- [ ] All imports are used
+- [ ] No `console.log` statements (except in error handling)
+- [ ] Proper TypeScript types throughout
+- [ ] Consistent code formatting (Prettier compatible)
+- [ ] No deprecated Next.js patterns (e.g., legacy API route syntax)
+
+### Common Lint Fixes
+- Replace `Response` with `NextResponse` in API routes
+- Use `NextRequest` instead of generic `Request`
+- Import types explicitly: `import type { Patient } from '@/types'`
+- Avoid default exports in utility functions
+- Use template literals for multi-line strings
+- Prefer `const` over `let` where possible
+
+### Example of Clean API Route
+```typescript
+// ✅ CORRECT - Fully typed, no lint errors
+import { NextRequest, NextResponse } from 'next/server';
+import { PrismaClient } from '@prisma/client';
+import type { Patient } from '@/lib/types';
+
+const prisma = new PrismaClient();
+
+interface CreatePatientBody {
+  hospitalNumber: string;
+  firstName: string;
+  lastName: string;
+}
+
+export async function POST(request: NextRequest): Promise<NextResponse<Patient | { error: string }>> {
+  try {
+    const body = await request.json() as CreatePatientBody;
+    
+    if (!body.hospitalNumber || !body.firstName || !body.lastName) {
+      return NextResponse.json(
+        { error: 'กรุณากรอกข้อมูลให้ครบถ้วน' },
+        { status: 400 }
+      );
+    }
+
+    const patient = await prisma.patient.create({
+      data: {
+        hospitalNumber: body.hospitalNumber,
+        firstName: body.firstName,
+        lastName: body.lastName,
+        status: 'ADMIT',
+      },
+    });
+
+    return NextResponse.json(patient, { status: 201 });
+  } catch (error) {
+    console.error('Error creating patient:', error);
+    return NextResponse.json(
+      { error: 'ไม่สามารถสร้างข้อมูลผู้ป่วยได้' },
+      { status: 500 }
+    );
+  }
+}
+```
+
+### AI Code Generation Instruction
+When writing code for this project, the AI MUST:
+1. Run mental lint check on all generated code
+2. Fix all type errors before presenting code
+3. Ensure imports are properly organized
+4. Remove all unused variables/imports
+5. Add proper TypeScript types to all functions, props, and variables
+6. Use Next.js 15 best practices (App Router conventions)
+7. Present code that would pass `npm run lint` without errors
+
+### Verification Command
+After generating files, AI should remind user to run:
 ```bash
-# Generate Prisma Client
-pnpm db:generate
-
-# Push schema to database (สร้างตารางทั้งหมด)
-pnpm db:push
-
-# (Optional) Seed ข้อมูลตัวอย่าง
-pnpm db:seed
+npm run lint        # Check for errors
+npm run lint:fix    # Auto-fix where possible
+npm run type-check  # TypeScript validation
 ```
 
-**คำสั่งที่เกี่ยวกับ Database:**
-
-```bash
-# ดู Database ผ่าน Prisma Studio (Web UI)
-pnpm db:studio
-
-# Reset Database (ลบข้อมูลทั้งหมด + สร้างใหม่)
-pnpm db:reset
-
-# สร้าง Migration (เมื่อเปลี่ยน schema)
-pnpm db:migrate
-
-# ดู merged schema
-pnpm schema:check
-```
-
----
-
-## 🚀 การรันโปรเจค
-
-### Development Mode
-
-```bash
-# รันโปรเจค (development mode)
-pnpm dev
-```
-
-เปิดเบราว์เซอร์ไปที่: **http://localhost:3000**
-
-### Production Build
-
-```bash
-# Build โปรเจค
-pnpm build
-
-# รัน Production server
-pnpm start
-```
-
----
-
-## 📁 โครงสร้างโปรเจค
-
-```
-project-root/
-├── app/                      # Next.js App Router
-│   ├── api/                  # API Routes (Backend)
-│   │   ├── auth/            # Authentication endpoints
-│   │   ├── assessments/     # Assessment CRUD
-│   │   ├── patients/        # Patient search
-│   │   └── reports/         # Report statistics
-│   ├── dashboard/           # Dashboard page
-│   ├── form/                # Assessment form page
-│   ├── manage/              # Data management page
-│   ├── report/              # Reports page
-│   ├── layout.tsx           # Root layout
-│   └── page.tsx             # Landing/Login page
-│
-├── components/              # React Components
-│   ├── auth/               # Authentication components
-│   ├── dashboard/          # Dashboard components
-│   ├── forms/              # Form components
-│   │   └── sections/       # Form sections
-│   ├── manage/             # Data management components
-│   ├── reports/            # Report/chart components
-│   └── ui/                 # Shadcn UI components
-│
-├── hooks/                   # Custom React Hooks
-│   ├── use-auth.ts         # Authentication hook
-│   └── use-mobile.ts       # Mobile detection hook
-│
-├── lib/                     # Utility libraries
-│   ├── db.ts               # Prisma client instance
-│   └── utils.ts            # Helper functions
-│
-├── prisma/                  # Database
-│   └── schema.prisma       # Database schema
-│
-├── public/                  # Static files
-│
-├── .env                     # Environment variables (สร้างเอง)
-├── .env.example            # ตัวอย่าง env file
-├── middleware.ts           # Next.js middleware (auth)
-├── package.json            # Dependencies
-├── tailwind.config.ts      # Tailwind configuration
-└── tsconfig.json           # TypeScript configuration
-```
-
----
-
-## 🎮 การใช้งาน
-
-### 1. Login
-
-- เปิด http://localhost:3000
-- ใส่ Username (อะไรก็ได้)
-- ใส่ Password ตาม `SYSTEM_PASSWORD` ใน `.env`
-
-### 2. เมนูหลัก (Dashboard)
-
-หลัง Login จะเห็น 3 เมนู:
-
-- **แบบประเมิน** - บันทึกข้อมูลผู้ป่วย
-- **รายงาน** - ดูสรุปสถิติและกราฟ
-- **จัดการข้อมูล** - ค้นหา/แก้ไข/ลบข้อมูล
-
-### 3. Default Login Credentials
-
-```
-Username: ใส่อะไรก็ได้ (เช่น admin, pharmacist, หรือชื่อของคุณ)
-Password: 123456
-```
-
-> 💡 **หมายเหตุ**: Username จะถูกบันทึกเป็นชื่อผู้ประเมินในระบบ ดังนั้นควรใส่ชื่อจริงหรือ username ที่สามารถระบุตัวตนได้
-
-**ต้องการเปลี่ยน Password?**
-แก้ไขค่า `SYSTEM_PASSWORD` ในไฟล์ `.env`
-
----
-
-## 📌 คำสั่งที่สำคัญ
-
-### Development
-
-```bash
-pnpm dev              # รันโปรเจค development mode
-pnpm build            # Build สำหรับ production
-pnpm start            # รัน production server
-pnpm lint             # ตรวจสอบ code quality
-pnpm type-check       # ตรวจสอบ TypeScript errors
-```
-
-### Database
-
-```bash
-pnpm db:generate      # Generate Prisma Client
-pnpm db:push          # Push schema to database
-pnpm db:migrate       # Create migration
-pnpm db:studio        # Open Prisma Studio (Database UI)
-pnpm db:seed          # Seed ข้อมูลตัวอย่าง
-pnpm db:reset         # Reset database
-```
-
-### Code Quality
-
-```bash
-pnpm format           # Format code with Prettier
-pnpm format:check     # Check code formatting
-```
-
----
-
-## 🔧 Troubleshooting
-
-### ปัญหา: `pnpm: command not found`
-
-**วิธีแก้:**
-```bash
-npm install -g pnpm
-```
-
-### ปัญหา: Database connection error
-
-**วิธีแก้:**
-1. ตรวจสอบว่า `DATABASE_URL` ใน `.env` ถูกต้อง
-2. ตรวจสอบว่า Database ทำงานอยู่ (ถ้าเป็น local PostgreSQL)
-3. ลอง `pnpm db:push` ใหม่
-
-### ปัญหา: Prisma Client not found
-
-**วิธีแก้:**
-```bash
-pnpm db:generate
-```
-
-### ปัญหา: Port 3000 is already in use
-
-**วิธีแก้:**
-```bash
-# เปลี่ยน port ใน package.json หรือ
-# Kill process ที่ใช้ port 3000
-
-# macOS/Linux
-lsof -ti:3000 | xargs kill -9
-
-# Windows
-netstat -ano | findstr :3000
-taskkill /PID [PID_NUMBER] /F
-```
-
-### ปัญหา: TypeScript errors
-
-**วิธีแก้:**
-```bash
-# ลบ node_modules และติดตั้งใหม่
-rm -rf node_modules
-rm pnpm-lock.yaml
-pnpm install
-```
-
-### ปัญหา: Prisma schema errors
-
-**วิธีแก้:**
-```bash
-# Reset database และสร้างใหม่
-pnpm db:reset
-```
-
----
-
-## 📚 เอกสารเพิ่มเติม
-
-### Tech Stack Documentation
-
-- **Next.js 15**: https://nextjs.org/docs
-- **React 19**: https://react.dev/
-- **TypeScript**: https://www.typescriptlang.org/docs/
-- **TailwindCSS**: https://tailwindcss.com/docs
-- **Prisma**: https://www.prisma.io/docs
-- **Shadcn/UI**: https://ui.shadcn.com/
-
-### Package Documentation
-
-- **React Hook Form**: https://react-hook-form.com/
-- **Zod**: https://zod.dev/
-- **Recharts**: https://recharts.org/
-- **date-fns**: https://date-fns.org/
-
----
-
-## 🤝 การพัฒนาต่อ
-
-### Branch Strategy
-
-```bash
-# สร้าง branch ใหม่สำหรับ feature
-git checkout -b feature/your-feature-name
-
-# Commit changes
-git add .
-git commit -m "Add: your feature description"
-
-# Push to remote
-git push origin feature/your-feature-name
-```
-
-### Code Style
-
-โปรเจคนี้ใช้:
-- **ESLint** สำหรับ code linting
-- **Prettier** สำหรับ code formatting
-- **TypeScript** สำหรับ type safety
-
-รัน `pnpm lint` ก่อน commit ทุกครั้ง
-
----
-
-## ⚠️ สิ่งที่ต้องระวัง
-
-1. **อย่า commit ไฟล์ `.env`** - มี sensitive data
-2. **ตรวจสอบ TypeScript errors** - รัน `pnpm type-check`
-3. **Test ก่อน push** - รัน `pnpm build` ให้ผ่าน
-4. **Database backup** - Backup ก่อน `pnpm db:reset`
-
----
-
-## 📞 ติดต่อ/สอบถาม
-
-หากมีปัญหาหรือข้อสงสัย:
-
-1. เปิด Issue ใน GitHub Repository
-2. ติดต่อผู้พัฒนาโปรเจค
-3. ดู Troubleshooting section ด้านบน
-
----
-
-## 📝 License
-
-[ระบุ License ของโปรเจค]
-
----
-
-## 🎉 Quick Start Guide
-
-```bash
-# 1. Clone โปรเจค
-git clone https://github.com/Taro112233/Asthma-COPD.git
-cd Asthma-COPD
-
-# 2. ติดตั้ง dependencies
-pnpm install
-
-# 3. ตั้งค่า environment variables
-cp .env.example .env
-# หรือสร้างไฟล์ .env ใหม่และคัดลอกค่าจากด้านบน
-
-# 4. ตั้งค่า database schema
-pnpm db:push
-
-# 5. (Optional) Seed ข้อมูลตัวอย่าง
-pnpm db:seed
-
-# 6. รันโปรเจค
-pnpm dev
-
-# 7. เปิดเบราว์เซอร์ที่ http://localhost:3000
-#    Username: อะไรก็ได้
-#    Password: 123456
-```
-
-**Happy Coding! 🚀**
+## Success Metrics
+- Page load time < 2 seconds
+- API response time < 500ms
+- Zero data loss on form submissions
+- 100% uptime on Vercel
+- Mobile-usable (though not optimized)
+- Zero ESLint errors in production code

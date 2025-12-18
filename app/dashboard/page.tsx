@@ -1,63 +1,76 @@
 // app/dashboard/page.tsx
+
 'use client';
 
-import { DashboardHeader } from '@/components/dashboard/dashboard-header';
-import { MenuCard } from '@/components/dashboard/menu-card';
-import { InfoSection } from '@/components/dashboard/info-section';
-import { useAuth } from '@/hooks/use-auth';
-import { ClipboardCheck, BarChart3, FolderOpen } from 'lucide-react';
-
-const MENU_ITEMS = [
-  {
-    href: '/form',
-    icon: ClipboardCheck,
-    title: 'แบบประเมิน',
-    subtitle: 'Assessment Form',
-    description: 'บันทึกข้อมูลการประเมินผู้ป่วย<br />Record patient assessment',
-    color: 'blue' as const
-  },
-  {
-    href: '/report',
-    icon: BarChart3,
-    title: 'รายงาน',
-    subtitle: 'Reports',
-    description: 'ดูรายงานและสรุปข้อมูล<br />View reports and summaries',
-    color: 'green' as const
-  },
-  {
-    href: '/manage',
-    icon: FolderOpen,
-    title: 'จัดการข้อมูล',
-    subtitle: 'Data Management',
-    description: 'ค้นหาและจัดการข้อมูลทั้งหมด<br />Search and manage all data',
-    color: 'purple' as const
-  }
-];
+import { useState, useEffect } from 'react';
+import { PatientCard } from '@/components/dashboard/patient-card';
+import { SearchBar } from '@/components/dashboard/search-bar';
+import { StatusFilter } from '@/components/dashboard/status-filter';
+import { AddPatientDialog } from '@/components/dashboard/add-patient-dialog';
+import { PatientWithAdmission } from '@/lib/types';
 
 export default function DashboardPage() {
-  const { username, handleLogout } = useAuth();
+  const [patients, setPatients] = useState<PatientWithAdmission[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [status, setStatus] = useState('ADMIT');
+
+  const fetchPatients = async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (search) params.append('search', search);
+      if (status) params.append('status', status);
+
+      const response = await fetch(`/api/patients?${params.toString()}`);
+      const data = await response.json();
+      setPatients(data);
+    } catch (error) {
+      console.error('Error fetching patients:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPatients();
+  }, [search, status]);
 
   return (
-    <div className="min-h-screen from-blue-50 to-white">
-      <DashboardHeader username={username} onLogout={handleLogout} />
-      
-      <div className="container mx-auto px-4 py-12">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">
-              เลือกเมนูการทำงาน
-            </h2>
-            <p className="text-gray-600">Select your task</p>
-          </div>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto py-8 px-4">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">ผู้ป่วยใน - Dashboard</h1>
+          <AddPatientDialog onPatientAdded={fetchPatients} />
+        </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
-            {MENU_ITEMS.map((item) => (
-              <MenuCard key={item.href} {...item} />
+        {/* Filter Section */}
+        <div className="bg-white rounded-lg shadow p-6 mb-6 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <SearchBar onSearch={setSearch} />
+            <div className="flex justify-end">
+              <StatusFilter currentStatus={status} onStatusChange={setStatus} />
+            </div>
+          </div>
+        </div>
+
+        {/* Patient Cards Grid */}
+        {loading ? (
+          <div className="text-center py-12">
+            <p className="text-gray-500">กำลังโหลดข้อมูล...</p>
+          </div>
+        ) : patients.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-gray-500">ไม่พบข้อมูลผู้ป่วย</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {patients.map((patient) => (
+              <PatientCard key={patient.id} patient={patient} />
             ))}
           </div>
-
-          <InfoSection />
-        </div>
+        )}
       </div>
     </div>
   );
