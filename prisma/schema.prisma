@@ -9,7 +9,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum PatientStatus {
+enum AdmissionStatus {
   ADMIT
   DISCHARGED
 }
@@ -19,7 +19,6 @@ model Patient {
   hospitalNumber String        @unique @map("hospital_number")
   firstName      String        @map("first_name")
   lastName       String        @map("last_name")
-  status         PatientStatus @default(ADMIT)
   createdAt      DateTime      @default(now()) @map("created_at")
   updatedAt      DateTime      @updatedAt @map("updated_at")
 
@@ -35,6 +34,7 @@ model Admission {
   bedNumber       String    @map("bed_number")
   admissionDate   DateTime  @map("admission_date")
   dischargeDate   DateTime? @map("discharge_date")
+  status          AdmissionStatus @default(ADMIT)
   
   // Clinical fields
   chiefComplaint  String?   @map("chief_complaint") @db.Text  // CC

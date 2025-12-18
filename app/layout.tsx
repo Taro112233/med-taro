@@ -12,8 +12,8 @@ const sarabun = Sarabun({
 });
 
 export const metadata: Metadata = {
-  title: "Asthma & COPD Clinic",
-  description: "ระบบจัดการคลินิกโรคหืดและโรคปอดอุดกั้นเรื้อรัง",
+  title: "IPD Clinic Management System",
+  description: "A management system for inpatient clinic",
 };
 
 export default function RootLayout({

@@ -63,22 +63,22 @@ export function AddPatientDialog({ onPatientAdded }: AddPatientDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>
+        <Button className="w-full sm:w-auto text-sm">
           <Plus className="mr-2 h-4 w-4" />
           เพิ่มผู้ป่วยใหม่
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="max-w-[90vw] sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>เพิ่มผู้ป่วยใหม่</DialogTitle>
-          <DialogDescription>
-            กรอกข้อมูลผู้ป่วยใหม่ ระบบจะตั้งสถานะเป็น Admit อัตโนมัติ
+          <DialogTitle className="text-base sm:text-lg">เพิ่มผู้ป่วยใหม่</DialogTitle>
+          <DialogDescription className="text-sm">
+            กรอกข้อมูลผู้ป่วยใหม่
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="hn">HN *</Label>
+              <Label htmlFor="hn" className="text-sm">HN *</Label>
               <Input
                 id="hn"
                 value={formData.hospitalNumber}
@@ -86,10 +86,11 @@ export function AddPatientDialog({ onPatientAdded }: AddPatientDialogProps) {
                   setFormData({ ...formData, hospitalNumber: e.target.value })
                 }
                 required
+                className="text-sm"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="firstName">ชื่อ *</Label>
+              <Label htmlFor="firstName" className="text-sm">ชื่อ *</Label>
               <Input
                 id="firstName"
                 value={formData.firstName}
@@ -97,10 +98,11 @@ export function AddPatientDialog({ onPatientAdded }: AddPatientDialogProps) {
                   setFormData({ ...formData, firstName: e.target.value })
                 }
                 required
+                className="text-sm"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="lastName">สกุล *</Label>
+              <Label htmlFor="lastName" className="text-sm">สกุล *</Label>
               <Input
                 id="lastName"
                 value={formData.lastName}
@@ -108,15 +110,21 @@ export function AddPatientDialog({ onPatientAdded }: AddPatientDialogProps) {
                   setFormData({ ...formData, lastName: e.target.value })
                 }
                 required
+                className="text-sm"
               />
             </div>
             {error && <p className="text-sm text-red-500">{error}</p>}
           </div>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => setOpen(false)}
+              className="w-full sm:w-auto"
+            >
               ยกเลิก
             </Button>
-            <Button type="submit" disabled={loading}>
+            <Button type="submit" disabled={loading} className="w-full sm:w-auto">
               {loading ? 'กำลังบันทึก...' : 'บันทึก'}
             </Button>
           </DialogFooter>

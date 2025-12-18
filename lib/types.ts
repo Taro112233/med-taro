@@ -8,15 +8,17 @@ export interface VitalSigns {
   o2sat?: number;
 }
 
-export interface Patient {
+export interface ProgressNote {
   id: string;
-  hospitalNumber: string;
-  firstName: string;
-  lastName: string;
-  status: 'ADMIT' | 'DISCHARGED';
+  admissionId: string;
+  subjective?: string | null;
+  objective?: string | null;
+  assessment?: string | null;
+  plan?: string | null;
+  vitalSigns?: VitalSigns | null;
+  note?: string | null;
   createdAt: Date;
-  updatedAt: Date;
-  admissions?: Admission[];
+  createdBy: string;
 }
 
 export interface Admission {
@@ -26,6 +28,7 @@ export interface Admission {
   bedNumber: string;
   admissionDate: Date;
   dischargeDate?: Date | null;
+  status: 'ADMIT' | 'DISCHARGED'; // เพิ่ม status ใน Admission
   chiefComplaint?: string | null;
   historyPresent?: string | null;
   pastMedicalHx?: string | null;
@@ -37,6 +40,17 @@ export interface Admission {
   note?: string | null;
   createdAt: Date;
   updatedAt: Date;
+  progressNotes?: ProgressNote[];
+}
+
+export interface Patient {
+  id: string;
+  hospitalNumber: string;
+  firstName: string;
+  lastName: string;
+  createdAt: Date;
+  updatedAt: Date;
+  admissions?: Admission[];
 }
 
 export interface PatientWithAdmission extends Patient {
