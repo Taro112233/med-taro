@@ -29,6 +29,19 @@ interface AdmissionSectionProps {
   onAdmissionAdded: () => void;
 }
 
+function getBedNumberDisplay(admission: Admission): string {
+  const now = new Date();
+  const updatedAt = new Date(admission.updatedAt);
+  const hoursDiff = (now.getTime() - updatedAt.getTime()) / (1000 * 60 * 60);
+  
+  // If admission hasn't been updated for more than 8 hours, add ? suffix
+  if (hoursDiff > 8) {
+    return `${admission.bedNumber}?`;
+  }
+  
+  return admission.bedNumber;
+}
+
 export function AdmissionSection({
   admissions,
   patientId,
@@ -191,7 +204,7 @@ export function AdmissionSection({
               className="text-sm mt-1"
             />
           ) : (
-            <p className="text-sm font-medium">{selectedAdmission.bedNumber}</p>
+            <p className="text-sm font-medium">{getBedNumberDisplay(selectedAdmission)}</p>
           )}
         </div>
         <div>

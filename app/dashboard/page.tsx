@@ -8,25 +8,39 @@ import { SearchBar } from '@/components/dashboard/search-bar';
 import { StatusFilter } from '@/components/dashboard/status-filter';
 import { AddPatientDialog } from '@/components/dashboard/add-patient-dialog';
 import { PatientWithAdmission } from '@/lib/types';
+import { toast } from 'sonner';
 
 export default function DashboardPage() {
   const [patients, setPatients] = useState<PatientWithAdmission[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('ADMIT');
+  const [error, setError] = useState<string | null>(null);
 
   const fetchPatients = async () => {
     setLoading(true);
+    setError(null);
     try {
       const params = new URLSearchParams();
       if (search) params.append('search', search);
       if (status) params.append('status', status);
 
+      console.log('[Dashboard] Fetching patients...');
       const response = await fetch(`/api/patients?${params.toString()}`);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch patients');
+      }
+
       const data = await response.json();
+      console.log('[Dashboard] Received patients:', data.length);
       setPatients(data);
     } catch (error) {
-      console.error('Error fetching patients:', error);
+      console.error('[Dashboard] Error fetching patients:', error);
+      const errorMessage = error instanceof Error ? error.message : 'ไม่สามารถโหลดข้อมูลได้';
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -34,6 +48,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     fetchPatients();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search, status]);
 
   return (
@@ -62,9 +77,24 @@ export default function DashboardPage() {
           <div className="text-center py-12">
             <p className="text-sm sm:text-base text-gray-500">กำลังโหลดข้อมูล...</p>
           </div>
+        ) : error ? (
+          <div className="text-center py-12">
+            <p className="text-sm sm:text-base text-red-500">{error}</p>
+            <button
+              onClick={fetchPatients}
+              className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
+              ลองอีกครั้ง
+            </button>
+          </div>
         ) : patients.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-sm sm:text-base text-gray-500">ไม่พบข้อมูลผู้ป่วย</p>
+            <p className="text-sm sm:text-base text-gray-500">
+              ไม่พบข้อมูลผู้ป่วย{status !== 'ALL' ? ` (สถานะ: ${status})` : ''}
+            </p>
+            <p className="text-xs text-gray-400 mt-2">
+              ลองเพิ่มผู้ป่วยใหม่ หรือเปลี่ยนตัวกรอง
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">

@@ -9,6 +9,19 @@ interface PatientCardProps {
   patient: PatientWithAdmission;
 }
 
+function getBedNumberDisplay(admission: PatientWithAdmission['admissions'][0]): string {
+  const now = new Date();
+  const updatedAt = new Date(admission.updatedAt);
+  const hoursDiff = (now.getTime() - updatedAt.getTime()) / (1000 * 60 * 60);
+  
+  // If admission hasn't been updated for more than 8 hours, add ? suffix
+  if (hoursDiff > 8) {
+    return `${admission.bedNumber}?`;
+  }
+  
+  return admission.bedNumber;
+}
+
 export function PatientCard({ patient }: PatientCardProps) {
   const currentAdmission = patient.admissions?.[0];
   const fullName = `${patient.firstName} ${patient.lastName}`;
@@ -49,7 +62,7 @@ export function PatientCard({ patient }: PatientCardProps) {
               <div>
                 <p className="text-xs text-gray-500">Bed</p>
                 <p className="text-xs sm:text-sm font-medium">
-                  {currentAdmission.bedNumber}
+                  {getBedNumberDisplay(currentAdmission)}
                 </p>
               </div>
               <div className="col-span-2">

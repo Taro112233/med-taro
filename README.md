@@ -14,9 +14,21 @@ Directory structure:
     │   ├── globals.css
     │   ├── layout.tsx
     │   ├── page.tsx
+    │   ├── [id]/
+    │   │   └── page.tsx
     │   ├── api/
-    │   │   └── patients/
-    │   │       └── route.ts
+    │   │   ├── admissions/
+    │   │   │   ├── route.ts
+    │   │   │   └── [id]/
+    │   │   │       └── route.ts
+    │   │   ├── patients/
+    │   │   │   ├── route.ts
+    │   │   │   └── [id]/
+    │   │   │       └── route.ts
+    │   │   └── progress-notes/
+    │   │       ├── route.ts
+    │   │       └── [id]/
+    │   │           └── route.ts
     │   └── dashboard/
     │       └── page.tsx
     ├── components/
@@ -25,6 +37,13 @@ Directory structure:
     │   │   ├── patient-card.tsx
     │   │   ├── search-bar.tsx
     │   │   └── status-filter.tsx
+    │   ├── patient-detail/
+    │   │   ├── add-admission-dialog.tsx
+    │   │   ├── add-progress-note-dialog.tsx
+    │   │   ├── admission-section.tsx
+    │   │   ├── patient-header.tsx
+    │   │   ├── progress-note-card.tsx
+    │   │   └── progress-notes-section.tsx
     │   └── ui/
     │       ├── accordion.tsx
     │       ├── alert-dialog.tsx

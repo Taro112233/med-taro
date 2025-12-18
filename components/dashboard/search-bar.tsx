@@ -30,7 +30,7 @@ export function SearchBar({ onSearch }: SearchBarProps) {
       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
       <Input
         type="text"
-        placeholder="ค้นหาด้วย HN หรือชื่อ-สกุล"
+        placeholder="ค้นหาด้วย HN, ชื่อ-สกุล, AN, Bed, CC, HPI หรือ Note"
         value={value}
         onChange={handleChange}
         className="pl-10"
