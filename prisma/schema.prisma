@@ -1,6 +1,4 @@
 // prisma/schema.prisma
-// Asthma & COPD Clinical Assessment System
-// Complete Database Schema - Production Ready
 
 generator client {
   provider = "prisma-client-js"
@@ -11,154 +9,72 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ============================================
-// PATIENT MODEL
-// ข้อมูลผู้ป่วย - ใช้ HN เป็น Primary Key เพียงอย่างเดียว
-// ============================================
+enum PatientStatus {
+  ADMIT
+  DISCHARGED
+}
+
 model Patient {
-  hospitalNumber  String       @id // HN - Primary Key (บังคับกรอก)
-  firstName       String?      // ชื่อ (optional)
-  lastName        String?      // นามสกุล (optional)
-  nickname        String?      // ชื่อเล่น (เฉพาะเด็ก)
-  dateOfBirth     DateTime?    // วันเกิด (สำหรับคำนวณอายุ)
-  age             Int?         // อายุ (ปี)
-  
-  // Metadata
-  createdAt       DateTime     @default(now())
-  createdBy       String?      // Username from cookie (optional)
-  updatedAt       DateTime     @updatedAt
-  
-  // Relations
-  assessments     Assessment[]
-  
-  // Indexes for performance
-  @@index([createdAt])
-  
+  id             String        @id @default(cuid())
+  hospitalNumber String        @unique @map("hospital_number")
+  firstName      String        @map("first_name")
+  lastName       String        @map("last_name")
+  status         PatientStatus @default(ADMIT)
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+
+  admissions Admission[]
+
   @@map("patients")
 }
 
-// ============================================
-// ASSESSMENT MODEL
-// การประเมินแต่ละครั้ง - 1 patient มีได้หลาย assessments
-// ============================================
-model Assessment {
-  id                    String             @id @default(cuid())
-  hospitalNumber        String             // HN (Foreign Key)
-  patient               Patient            @relation(fields: [hospitalNumber], references: [hospitalNumber], onDelete: Cascade)
+model Admission {
+  id              String    @id @default(cuid())
+  admissionNumber String    @unique @map("admission_number")
+  patientId       String    @map("patient_id")
+  bedNumber       String    @map("bed_number")
+  admissionDate   DateTime  @map("admission_date")
+  dischargeDate   DateTime? @map("discharge_date")
   
-  // ========== META INFORMATION ==========
-  assessmentDate        DateTime?          // วันที่ประเมิน (optional)
-  assessedBy            String?            // Username from cookie (optional)
+  // Clinical fields
+  chiefComplaint  String?   @map("chief_complaint") @db.Text  // CC
+  historyPresent  String?   @map("history_present") @db.Text  // HPI
+  pastMedicalHx   String?   @map("past_medical_hx") @db.Text  // PHM
+  familyHistory   String?   @map("family_history") @db.Text   // FH
+  socialHistory   String?   @map("social_history") @db.Text   // SH
+  allergies       String?   @db.Text                          // ALL
+  medications     String?   @db.Text                          // MED
+  lab             String?   @db.Text                          // Lab
+  note            String?   @db.Text
   
-  // ========== HEADER SECTION (ADULT-SPECIFIC) ==========
-  alcohol               Boolean?           // ดื่มแอลกอฮอล์
-  alcoholAmount         String?            // ปริมาณแอลกอฮอล์ (ถ้ามี)
-  smoking               Boolean?           // สูบบุหรี่
-  smokingAmount         String?            // ปริมาณบุหรี่ (ถ้ามี)
-  
-  // ========== DIAGNOSIS SECTION ==========
-  primaryDiagnosis      Diagnosis?         // โรคหลัก (optional)
-  secondaryDiagnoses    Diagnosis[]        // โรคแนบเพิ่มเติม (array, ถ้ามีหลายโรค)
-  note                  String?            @db.Text // Note/Risk factor
-  
-  // ========== DISEASE-SPECIFIC DATA (JSON) ==========
-  // asthmaData: { pef, pefPercent, day, night, rescue, er, admit, controlLevel }
-  asthmaData            Json?
-  
-  // copdData: { mMRC, cat, exacerbPerYear, fev1, sixMWD, stage }
-  copdData              Json?
-  
-  // arData: { symptoms, severity, pattern }
-  arData                Json?
-  
-  // ========== COMPLIANCE SECTION ==========
-  complianceStatus      ComplianceStatus?  // สถานะการใช้ยา (optional)
-  compliancePercent     Int?               // เปอร์เซ็นต์การใช้ยา (0-100%, optional)
-  cannotAssessReason    String?            @db.Text // เหตุผลที่ประเมินไม่ได้
-  
-  // ========== NON-COMPLIANCE REASONS ==========
-  // Array of reason codes: INCORRECT_TECHNIQUE, INCORRECT_DOSAGE, LESS_THAN, MORE_THAN, 
-  //                        LACK_KNOWLEDGE, NOT_READ_LABEL, ELDERLY, FORGET, FEAR_SIDE_EFFECTS
-  nonComplianceReasons  String[]           @default([])
-  lessThanDetail        String?            @db.Text // รายละเอียดถ้าเลือก "น้อยกว่า"
-  moreThanDetail        String?            @db.Text // รายละเอียดถ้าเลือก "มากกว่า"
-  nonComplianceOther    String?            @db.Text // เหตุผลอื่น ๆ
-  
-  // ========== SIDE EFFECTS SECTION ==========
-  hasSideEffects        Boolean?           // มีผลข้างเคียง (optional)
-  sideEffects           String[]           @default([]) // Array: ["ORAL_CANDIDIASIS", "HOARSE_VOICE", "PALPITATION"]
-  sideEffectsOther      String?            // ผลข้างเคียงอื่น ๆ (ระบุ)
-  sideEffectsManagement String?            @db.Text // การจัดการผลข้างเคียง
-  
-  // ========== CLINICAL ASSESSMENT ==========
-  drps                  String?            @db.Text // Drug Related Problems
-  
-  // ========== MEDICATION STATUS ==========
-  medicationStatus      MedicationStatus?  // สถานะยาคงเหลือ (optional)
-  unopenedMedication    Boolean?           // เหลือยาที่ยังไม่เปิดกล่อง
-  
-  // ========== INHALER TECHNIQUE SECTION ==========
-  techniqueCorrect      Boolean?           // เทคนิคการพ่นยาถูกต้อง (optional)
-  inhalerDevices        String[]           @default([]) // Array: ["MDI", "TURBO", "ACCU", "NS", "HAND", "ELLIPTA", "SPIOLTO"]
-  
-  // JSON Structure: { 
-  //   prepare: { MDI: {status: 'correct'|'incorrect'|'none', note: ''}, TURBO: {...}, ... }, 
-  //   inhale: {...}, 
-  //   rinse: {...}, 
-  //   empty: {...} 
-  // }
-  techniqueSteps        Json?              // Matrix 4 steps x 7 devices
-  
-  spacerType            String?            // "MOUTH_PIECE" | "VOLUMETRIC" | "CONE" | "NONE"
-  
-  // ========== MEDICATIONS SECTION ==========
-  // JSON Array: [
-  //   { id: string, name: string, quantity: number }, 
-  //   ...
-  // ]
-  medications           Json?              // รายการยาที่จ่าย
-  
-  // ========== METADATA ==========
-  createdAt             DateTime           @default(now())
-  updatedAt             DateTime           @updatedAt
-  
-  // Indexes for performance
-  @@index([hospitalNumber, assessmentDate])
-  @@index([assessmentDate])
-  @@index([primaryDiagnosis])
-  @@index([complianceStatus])
-  @@index([createdAt])
-  
-  @@map("assessments")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  patient       Patient         @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  progressNotes ProgressNote[]
+
+  @@map("admissions")
 }
 
-// ============================================
-// ENUM DEFINITIONS
-// ============================================
+model ProgressNote {
+  id          String   @id @default(cuid())
+  admissionId String   @map("admission_id")
+  
+  // SOAP fields
+  subjective  String?  @db.Text
+  objective   String?  @db.Text
+  assessment  String?  @db.Text
+  plan        String?  @db.Text
+  
+  // Vital signs stored as JSON
+  // Structure: {bp: "120/80", hr: 72, rr: 16, temp: 37.0, o2sat: 98}
+  vitalSigns  Json?    @map("vital_signs")
+  
+  note        String?  @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+  createdBy   String   @map("created_by")
 
+  admission Admission @relation(fields: [admissionId], references: [id], onDelete: Cascade)
 
-// Primary Diagnosis
-enum Diagnosis {
-  ASTHMA              // หอบหืด
-  COPD                // ปอดอุดกั้นเรื้อรัง
-  ACOD                // Asthma-COPD Overlap Disease
-  BRONCHIECTASIS      // หลอดลมขยายผิดปกติ
-  ALLERGIC_RHINITIS   // โรคจมูกอักเสบจากภูมิแพ้ (AR)
-  GERD                // โรคกรดไหลย้อน
-  OSA                 // Obstructive Sleep Apnea (เด็ก)
-  OTHER               // อื่น ๆ
-}
-
-// Compliance Status
-enum ComplianceStatus {
-  GOOD_COMPLIANCE  // ใช้ยาได้ดี
-  FIRST_USE        // ใช้ครั้งแรก
-  CANNOT_ASSESS    // ประเมินไม่ได้ เพราะ...
-  NON_COMPLIANCE   // ไม่ใช้ยาตามที่กำหนด
-}
-
-// Medication Status (remaining meds)
-enum MedicationStatus {
-  NO_REMAINING   // ไม่เหลือยา
-  HAS_REMAINING  // เหลือยา
+  @@map("progress_notes")
 }
