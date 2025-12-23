@@ -44,87 +44,97 @@
 }
 
 :root {
-  --radius: 0.625rem;
-  --background: oklch(0.99 0.005 30);
-  --foreground: oklch(0.15 0.02 30);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.15 0.02 30);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.15 0.02 30);
+  --radius: 0.5rem;
   
-  /* Red primary theme */
-  --primary: oklch(0.55 0.22 25);
+  /* Clinical white/gray backgrounds */
+  --background: oklch(0.98 0.002 240);
+  --foreground: oklch(0.20 0.015 240);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.20 0.015 240);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.20 0.015 240);
+  
+  /* Medical blue primary - calm and trustworthy */
+  --primary: oklch(0.52 0.14 240);
   --primary-foreground: oklch(0.99 0 0);
   
-  --secondary: oklch(0.96 0.01 25);
-  --secondary-foreground: oklch(0.15 0.02 25);
-  --muted: oklch(0.96 0.01 25);
-  --muted-foreground: oklch(0.50 0.02 25);
-  --accent: oklch(0.96 0.01 25);
-  --accent-foreground: oklch(0.55 0.22 25);
+  /* Soft gray secondary */
+  --secondary: oklch(0.95 0.005 240);
+  --secondary-foreground: oklch(0.25 0.015 240);
+  --muted: oklch(0.96 0.005 240);
+  --muted-foreground: oklch(0.50 0.015 240);
   
-  /* Destructive red */
-  --destructive: oklch(0.55 0.25 27);
+  /* Light blue accent for highlights */
+  --accent: oklch(0.94 0.02 240);
+  --accent-foreground: oklch(0.25 0.015 240);
   
-  --border: oklch(0.90 0.01 25);
-  --input: oklch(0.90 0.01 25);
-  --ring: oklch(0.55 0.22 25);
+  /* Medical red for critical/destructive actions */
+  --destructive: oklch(0.55 0.22 25);
   
-  --chart-1: oklch(0.60 0.22 25);
-  --chart-2: oklch(0.60 0.12 350);
-  --chart-3: oklch(0.55 0.15 15);
-  --chart-4: oklch(0.70 0.18 40);
-  --chart-5: oklch(0.65 0.20 10);
+  /* Subtle borders */
+  --border: oklch(0.92 0.005 240);
+  --input: oklch(0.98 0.002 240);
+  --ring: oklch(0.52 0.14 240);
   
-  --sidebar: oklch(0.98 0.005 25);
-  --sidebar-foreground: oklch(0.15 0.02 25);
-  --sidebar-primary: oklch(0.55 0.22 25);
+  /* Medical chart colors - vital signs palette */
+  --chart-1: oklch(0.55 0.14 240); /* Blue - BP */
+  --chart-2: oklch(0.60 0.16 140); /* Green - HR */
+  --chart-3: oklch(0.65 0.18 60);  /* Yellow - Temp */
+  --chart-4: oklch(0.58 0.14 280); /* Purple - O2 */
+  --chart-5: oklch(0.62 0.16 200); /* Cyan - RR */
+  
+  /* Sidebar - clean medical interface */
+  --sidebar: oklch(0.99 0.002 240);
+  --sidebar-foreground: oklch(0.25 0.015 240);
+  --sidebar-primary: oklch(0.52 0.14 240);
   --sidebar-primary-foreground: oklch(0.99 0 0);
-  --sidebar-accent: oklch(0.96 0.01 25);
-  --sidebar-accent-foreground: oklch(0.15 0.02 25);
-  --sidebar-border: oklch(0.90 0.01 25);
-  --sidebar-ring: oklch(0.55 0.22 25);
+  --sidebar-accent: oklch(0.96 0.005 240);
+  --sidebar-accent-foreground: oklch(0.25 0.015 240);
+  --sidebar-border: oklch(0.92 0.005 240);
+  --sidebar-ring: oklch(0.52 0.14 240);
 }
 
 .dark {
-  --background: oklch(0.12 0.02 25);
-  --foreground: oklch(0.98 0.005 25);
-  --card: oklch(0.15 0.02 25);
-  --card-foreground: oklch(0.98 0.005 25);
-  --popover: oklch(0.15 0.02 25);
-  --popover-foreground: oklch(0.98 0.005 25);
+  /* Dark mode - muted medical interface */
+  --background: oklch(0.15 0.01 240);
+  --foreground: oklch(0.95 0.005 240);
+  --card: oklch(0.18 0.01 240);
+  --card-foreground: oklch(0.95 0.005 240);
+  --popover: oklch(0.18 0.01 240);
+  --popover-foreground: oklch(0.95 0.005 240);
   
-  /* Red primary for dark mode */
-  --primary: oklch(0.65 0.24 25);
-  --primary-foreground: oklch(0.12 0.02 25);
+  /* Brighter medical blue for dark mode */
+  --primary: oklch(0.62 0.16 240);
+  --primary-foreground: oklch(0.15 0.01 240);
   
-  --secondary: oklch(0.20 0.02 25);
-  --secondary-foreground: oklch(0.98 0.005 25);
-  --muted: oklch(0.20 0.02 25);
-  --muted-foreground: oklch(0.60 0.02 25);
-  --accent: oklch(0.20 0.02 25);
-  --accent-foreground: oklch(0.98 0.005 25);
+  --secondary: oklch(0.22 0.01 240);
+  --secondary-foreground: oklch(0.95 0.005 240);
+  --muted: oklch(0.22 0.01 240);
+  --muted-foreground: oklch(0.65 0.01 240);
+  --accent: oklch(0.25 0.02 240);
+  --accent-foreground: oklch(0.95 0.005 240);
   
-  --destructive: oklch(0.65 0.24 20);
+  --destructive: oklch(0.60 0.20 25);
   
-  --border: oklch(0.25 0.02 25);
-  --input: oklch(0.25 0.02 25);
-  --ring: oklch(0.60 0.20 25);
+  --border: oklch(0.28 0.01 240);
+  --input: oklch(0.22 0.01 240);
+  --ring: oklch(0.62 0.16 240);
   
-  --chart-1: oklch(0.60 0.24 25);
-  --chart-2: oklch(0.65 0.18 350);
-  --chart-3: oklch(0.70 0.20 15);
-  --chart-4: oklch(0.55 0.22 40);
-  --chart-5: oklch(0.60 0.24 10);
+  /* Adjusted chart colors for dark mode */
+  --chart-1: oklch(0.60 0.16 240);
+  --chart-2: oklch(0.65 0.18 140);
+  --chart-3: oklch(0.70 0.20 60);
+  --chart-4: oklch(0.63 0.16 280);
+  --chart-5: oklch(0.67 0.18 200);
   
-  --sidebar: oklch(0.15 0.02 25);
-  --sidebar-foreground: oklch(0.98 0.005 25);
-  --sidebar-primary: oklch(0.65 0.24 25);
-  --sidebar-primary-foreground: oklch(0.98 0.005 25);
-  --sidebar-accent: oklch(0.20 0.02 25);
-  --sidebar-accent-foreground: oklch(0.98 0.005 25);
-  --sidebar-border: oklch(0.25 0.02 25);
-  --sidebar-ring: oklch(0.60 0.20 25);
+  --sidebar: oklch(0.18 0.01 240);
+  --sidebar-foreground: oklch(0.95 0.005 240);
+  --sidebar-primary: oklch(0.62 0.16 240);
+  --sidebar-primary-foreground: oklch(0.95 0.005 240);
+  --sidebar-accent: oklch(0.22 0.01 240);
+  --sidebar-accent-foreground: oklch(0.95 0.005 240);
+  --sidebar-border: oklch(0.28 0.01 240);
+  --sidebar-ring: oklch(0.62 0.16 240);
 }
 
 @layer base {
@@ -133,5 +143,38 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  /* Medical-specific typography */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
+  }
+  
+  /* Clinical data display */
+  .clinical-value {
+    @apply font-mono text-sm tabular-nums;
+  }
+  
+  /* Status indicators */
+  .status-admit {
+    @apply bg-primary/10 text-primary border-primary/20;
+  }
+  
+  .status-discharged {
+    @apply bg-muted text-muted-foreground border-border;
+  }
+  
+  /* Vital signs color coding */
+  .vital-normal {
+    @apply text-chart-2;
+  }
+  
+  .vital-warning {
+    @apply text-chart-3;
+  }
+  
+  .vital-critical {
+    @apply text-destructive;
   }
 }
