@@ -22,13 +22,33 @@ function getBedNumberDisplay(admission: PatientWithAdmission['admissions'][0]): 
   return admission.bedNumber;
 }
 
+function getDayColorClasses(admissionDate: Date): { bg: string; border: string; text: string } {
+  const dayOfWeek = new Date(admissionDate).getDay();
+  
+  const colorMap = {
+    0: { bg: 'bg-red-50', border: 'border-l-red-500', text: 'text-red-700' },        // อาทิตย์
+    1: { bg: 'bg-yellow-50', border: 'border-l-yellow-500', text: 'text-yellow-700' }, // จันทร์
+    2: { bg: 'bg-pink-50', border: 'border-l-pink-500', text: 'text-pink-700' },     // อังคาร
+    3: { bg: 'bg-green-50', border: 'border-l-green-500', text: 'text-green-700' },  // พุธ
+    4: { bg: 'bg-orange-50', border: 'border-l-orange-500', text: 'text-orange-700' }, // พฤหัส
+    5: { bg: 'bg-blue-50', border: 'border-l-blue-500', text: 'text-blue-700' },     // ศุกร์
+    6: { bg: 'bg-purple-50', border: 'border-l-purple-500', text: 'text-purple-700' }, // เสาร์
+  };
+  
+  return colorMap[dayOfWeek as keyof typeof colorMap];
+}
+
 export function PatientCard({ patient }: PatientCardProps) {
   const currentAdmission = patient.admissions?.[0];
   const fullName = `${patient.firstName} ${patient.lastName}`;
+  
+  const colorClasses = currentAdmission 
+    ? getDayColorClasses(currentAdmission.admissionDate)
+    : { bg: 'bg-gray-50', border: 'border-l-gray-500', text: 'text-gray-700' };
 
   return (
     <Link href={`/${patient.id}`}>
-      <Card className="p-4 sm:p-6 hover:shadow-lg transition-shadow cursor-pointer border-l-4 border-l-blue-500">
+      <Card className={`p-4 sm:p-6 hover:shadow-lg transition-shadow cursor-pointer border-l-4 ${colorClasses.border} ${colorClasses.bg}`}>
         <div className="space-y-3 sm:space-y-4">
           {/* Header Section */}
           <div className="flex items-start justify-between gap-3">
